@@ -112,7 +112,7 @@ struct AuthManagerTests {
                 email: invalidEmail,
                 password: testPassword
             )
-            #expect(false, "Expected to throw MockError.invalidEmail")
+            #expect(Bool(false), "Expected to throw MockError.invalidEmail")
         } catch {
             #expect(error as? MockError == MockError.invalidEmail)
             #expect(authManager.auth == nil)
@@ -148,7 +148,7 @@ struct AuthManagerTests {
         // When/Then
         do {
             try await authManager.resetPassword(email: testEmail)
-            #expect(false, "Expected to throw MockError.userNotFound")
+            #expect(Bool(false), "Expected to throw MockError.userNotFound")
         } catch {
             #expect(error as? MockError == MockError.userNotFound)
             #expect(authManager.auth == nil)
@@ -178,7 +178,7 @@ struct AuthManagerTests {
         // When/Then
         do {
             try await authManager.updatePassword(newPassword: newPassword)
-            #expect(false, "Expected to throw AuthManager.AuthError.notSignedIn")
+            #expect(Bool(false), "Expected to throw AuthManager.AuthError.notSignedIn")
         } catch {
             #expect(error as? AuthManager.AuthError == AuthManager.AuthError.notSignedIn)
             #expect(authManager.auth == nil)
@@ -223,10 +223,73 @@ struct AuthManagerTests {
         // When/Then
         do {
             try await authManager.updateEmail(newEmail: newEmail)
-            #expect(false, "Expected to throw AuthManager.AuthError.notSignedIn")
+            #expect(Bool(false), "Expected to throw AuthManager.AuthError.notSignedIn")
         } catch {
             #expect(error as? AuthManager.AuthError == AuthManager.AuthError.notSignedIn)
             #expect(authManager.auth == nil)
         }
     }
+    
+    
+    
+    @Test("AuthManager signs in with email successfully")
+    func testSignInWithEmailSuccess() async throws {
+        // Given
+        let email = "test@example.com"
+        let password = "password123"
+        let user = UserAuthInfo(
+            uid: UUID().uuidString,
+            email: email,
+            authProviders: [.email],
+            creationDate: .now,
+            lastSignInDate: .now
+        )
+        let authService = MockAuthService(user: user)
+        let authManager = AuthManager(service: authService)
+
+        // When
+        let result = try await authManager.signInWithEmail(email: email, password: password)
+
+        // Then
+        #expect(result.user.email == email)
+        #expect(authManager.auth?.email == email)
+        #expect(result.isNewUser == false)
+    }
+
+    @Test("AuthManager throws error when signing in with invalid credentials")
+    func testSignInWithEmailInvalidCredentials() async {
+        // Given
+        let authService = MockAuthService()
+        let authManager = AuthManager(service: authService)
+        let email = "test@example.com"
+        let password = "wrongpassword"
+
+        // When/Then
+        do {
+            _ = try await authManager.signInWithEmail(email: email, password: password)
+            #expect(Bool(false), "Expected to throw MockError.invalidCredentials")
+        } catch {
+            #expect(error as? MockError == MockError.invalidCredentials)
+            #expect(authManager.auth == nil)
+        }
+    }
+
+    @Test("AuthManager throws error when user does not exist")
+    func testSignInWithEmailNonExistentUser() async {
+        // Given
+        let authService = MockAuthService()
+        let authManager = AuthManager(service: authService)
+        let email = "nonexistent@example.com"
+        let password = "anypassword"
+
+        // When/Then
+        do {
+            _ = try await authManager.signInWithEmail(email: email, password: password)
+            #expect(Bool(false), "Expected to throw MockError.invalidCredentials")
+        } catch {
+            #expect(error as? MockError == MockError.invalidCredentials)
+            #expect(authManager.auth == nil)
+        }
+    }
 }
+

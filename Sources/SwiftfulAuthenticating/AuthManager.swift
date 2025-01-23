@@ -131,6 +131,26 @@ public class AuthManager {
                     throw error
                 }
             }
+    
+            
+            @discardableResult
+            public func signInWithEmail(email: String, password: String) async throws -> (user: UserAuthInfo, isNewUser: Bool) {
+                self.logger?.trackEvent(event: Event.signInStart(option: .email))
+                
+                do {
+                    let result = try await service.signInWithEmail(email: email, password: password)
+                    setCurrentAuth(auth: result.user)
+                    logger?.trackEvent(event: Event.signInSuccess(
+                        option: .email,
+                        user: result.user,
+                        isNewUser: result.isNewUser
+                    ))
+                    return result
+                } catch {
+                    logger?.trackEvent(event: Event.signInFail(error: error))
+                    throw error
+                }
+            }
 
             public func resetPassword(email: String) async throws {
                 self.logger?.trackEvent(event: Event.resetPasswordStart(email: email))

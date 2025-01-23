@@ -6,7 +6,7 @@
 //
 
 public enum SignInOption: Sendable {
-    case apple, anonymous
+    case apple, anonymous, email
     case google(GIDClientID: String)
     
     public var stringValue: String {
@@ -17,6 +17,8 @@ public enum SignInOption: Sendable {
             return "anonymous"
         case .google:
             return "google"
+        case .email:
+            return "password"
         }
     }
     

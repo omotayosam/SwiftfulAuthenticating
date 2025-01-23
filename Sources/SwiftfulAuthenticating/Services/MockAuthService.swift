@@ -38,7 +38,7 @@ public class MockAuthService: AuthService {
 
     public func signIn(option: SignInOption) async throws -> (user: UserAuthInfo, isNewUser: Bool) {
         switch option {
-        case .apple, .google, .anonymous:
+        case .apple, .google, .anonymous, .email:
             let user = UserAuthInfo.mock(isAnonymous: false)
             currentUser = user
             return (user, false)
@@ -63,6 +63,18 @@ public class MockAuthService: AuthService {
         return (user, true)
     }
 
+    
+    public func signInWithEmail(email: String, password: String) async throws -> (user: UserAuthInfo, isNewUser: Bool) {
+            // Simulating email sign-in logic
+            guard let currentUser = currentUser, currentUser.email == email else {
+                throw MockError.invalidCredentials
+            }
+            
+            // You might want to add password validation logic here
+            return (currentUser, false)
+        }
+    
+    
     public func sendPasswordReset(email: String) async throws {
         guard currentUser?.email == email else {
             throw MockError.userNotFound
