@@ -49,4 +49,61 @@ public class MockAuthService: AuthService {
         currentUser = nil
     }
 
+    // New methods
+    public func createUserWithEmail(email: String, password: String) async throws -> (user: UserAuthInfo, isNewUser: Bool) {
+        guard email.contains("@") else { throw MockError.invalidEmail }
+        let user = UserAuthInfo(
+            uid: UUID().uuidString,
+            email: email,
+            authProviders: [.email],
+            creationDate: .now,
+            lastSignInDate: .now
+        )
+        currentUser = user
+        return (user, true)
+    }
+
+    public func sendPasswordReset(email: String) async throws {
+        guard currentUser?.email == email else {
+            throw MockError.userNotFound
+        }
+        // Simulate a password reset success.
+    }
+
+    public func updatePassword(for userId: String, newPassword: String) async throws {
+        guard currentUser?.uid == userId else {
+            throw MockError.userNotFound
+        }
+        // Simulate password update success.
+    }
+
+    public func updateEmail(for userId: String, newEmail: String) async throws {
+        guard currentUser?.uid == userId else {
+            throw MockError.userNotFound
+        }
+        currentUser = UserAuthInfo(
+            uid: currentUser!.uid,
+            email: newEmail,
+            authProviders: currentUser!.authProviders,
+            creationDate: currentUser!.creationDate,
+            lastSignInDate: currentUser!.lastSignInDate
+        )
+    }
+
 }
+
+
+
+
+
+
+// Helper for mock-specific errors
+enum MockError: Error {
+    case invalidEmail
+    case invalidCredentials
+    case userNotFound
+    case notImplemented
+}
+
+
+
